@@ -1648,6 +1648,8 @@ void cortex_m_deinit_target(struct target *target)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 
+	armv7m_trace_tpiu_exit(target);
+
 	free(cortex_m->fp_comparator_list);
 
 	cortex_m_dwt_free(target);
@@ -2009,8 +2011,8 @@ int cortex_m_examine(struct target *target)
 		}
 		LOG_DEBUG("cpuid: 0x%8.8" PRIx32 "", cpuid);
 
-		/* VECTRESET is not supported on Cortex-M0, M0+ and M1 */
-		cortex_m->vectreset_supported = i > 1;
+		/* VECTRESET is supported only on ARMv7-M cores */
+		cortex_m->vectreset_supported = !armv7m->arm.is_armv8m && !armv7m->arm.is_armv6m;
 
 		if (i == 4) {
 			target_read_u32(target, MVFR0, &mvfr0);
