@@ -411,7 +411,7 @@ static const struct command_registration rp2040_exec_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-static const struct command_registration ro2040_command_handlers[] = {
+static const struct command_registration rp2040_command_handlers[] = {
 	{
 		.name = "rp2040_flash",
 		.mode = COMMAND_ANY,
@@ -424,7 +424,7 @@ static const struct command_registration ro2040_command_handlers[] = {
 
 struct flash_driver rp2040_flash = {
 	.name = "rp2040_flash",
-	.commands = ro2040_command_handlers,
+	.commands = rp2040_command_handlers,
 	.flash_bank_command = rp2040_flash_bank_command,
 	.erase =  rp2040_flash_erase,
 	.protect = rp2040_flash_protect,
