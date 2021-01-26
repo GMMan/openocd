@@ -360,9 +360,71 @@ FLASH_BANK_COMMAND_HANDLER(rp2040_flash_bank_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(rp2040_handle_enter_cmd_xip_command)
+{
+	struct flash_bank *bank;
+	struct rp2040_flash_bank *priv;
+	int err;
+
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	err = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (err != ERROR_OK)
+		return err;
+	
+	priv = bank->driver_priv;
+
+	LOG_DEBUG("Connecting internal flash");
+	err = rp2040_call_rom_func(bank->target, priv->stacktop, FUNC_CONNECT_INTERNAL_FLASH, NULL, 0);
+	if (err != ERROR_OK)
+	{
+		LOG_ERROR("RP2040 enter command XIP: failed to connect internal flash");
+		return err;
+	}
+
+	LOG_DEBUG("Kicking flash out of XIP mode");
+	err = rp2040_call_rom_func(bank->target, priv->stacktop, FUNC_FLASH_EXIT_XIP, NULL, 0);
+	if (err != ERROR_OK)
+	{
+		LOG_ERROR("RP2040 enter command XIP: failed to exit flash XIP mode");
+		return err;
+	}
+
+	LOG_DEBUG("Configuring SSI for execute-in-place");
+	err = rp2040_call_rom_func(bank->target, priv->stacktop, FUNC_FLASH_ENTER_CMD_XIP, NULL, 0);
+	if (err != ERROR_OK)
+	{
+		LOG_ERROR("RP2040 enter command XIP: failed to enter command XIP");
+	}
+	return err;
+}
+
+static const struct command_registration rp2040_exec_command_handlers[] = {
+	{
+		.name = "enter_cmd_xip",
+		.handler = rp2040_handle_enter_cmd_xip_command,
+		.mode = COMMAND_EXEC,
+		.usage = "bank_id",
+		.help = "Enters command XIP mode for XIP reading.",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+static const struct command_registration ro2040_command_handlers[] = {
+	{
+		.name = "rp2040_flash",
+		.mode = COMMAND_ANY,
+		.help = "RP2040 flash commands",
+		.usage = "",
+		.chain = rp2040_exec_command_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
 struct flash_driver rp2040_flash = {
 	.name = "rp2040_flash",
-	.commands = NULL,
+	.commands = ro2040_command_handlers,
 	.flash_bank_command = rp2040_flash_bank_command,
 	.erase =  rp2040_flash_erase,
 	.protect = rp2040_flash_protect,
