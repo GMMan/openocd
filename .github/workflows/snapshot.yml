@@ -58,7 +58,7 @@ jobs:
           echo "CAPSTONE_SRC=$PWD/capstone-${CAPSTONE_VER}" >> $GITHUB_ENV
       - name: Prepare libjaylink
         env:
-          LIBJAYLINK_VER: 0.3.1
+          LIBJAYLINK_VER: 0.4.0
         run: |
           mkdir -p $DL_DIR && cd $DL_DIR
           wget https://gitlab.zapb.de/libjaylink/libjaylink/-/archive/${LIBJAYLINK_VER}/libjaylink-${LIBJAYLINK_VER}.tar.gz
